@@ -46,8 +46,8 @@ jobs:
 
   deploy:
     needs: build-and-lint
-    if: false
-    #if: github.event_name == 'push'
+    #if: false
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (optional)
