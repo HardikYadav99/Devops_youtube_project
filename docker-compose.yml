@@ -9,12 +9,12 @@ services:
       - ./server/.env
     ports:
       - "5001:5000"
-
+ #made VITE API URL dynamic for both local machine and AWS
   frontend:
     build: 
       context: ./client
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        VITE_API_URL: ${VITE_API_URL} 
     container_name: frontend
     restart: always
     ports:
