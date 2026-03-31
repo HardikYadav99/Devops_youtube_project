@@ -62,7 +62,7 @@ function App() {
 
 
   // checking CI by extra c
-  let sangam = 'unused variable here';
+  //let sangam = 'unused variable here';
 
   return (
     <div className="min-h-screen bg-gray-50">
