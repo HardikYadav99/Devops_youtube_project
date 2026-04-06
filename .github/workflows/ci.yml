@@ -74,6 +74,7 @@ jobs:
           EC2_APP_DIR: ${{ secrets.EC2_APP_DIR }}
         run: |
           ssh -i ec2_key.pem ${EC2_USER}@${EC2_HOST} << EOF
+          set -x   # 👈 THIS LINE ADDED (debug mode)
             set -e
             cd "${EC2_APP_DIR}"
 
