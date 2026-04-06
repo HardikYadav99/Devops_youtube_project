@@ -52,6 +52,18 @@ jobs:
     steps:
       - name: Checkout (optional)
         uses: actions/checkout@v4
+        - name: Debug EC2_HOST before ssh-keyscan
+  env:
+    EC2_HOST: ${{ secrets.EC2_HOST }}
+  run: |
+    echo "Value: [$EC2_HOST]"
+    if [ -z "$EC2_HOST" ]; then
+      echo "❌ EC2_HOST is EMPTY"
+      exit 1
+    else
+      echo "✅ EC2_HOST is present"
+    fi
+
 
       - name: Add EC2 host to known_hosts
         run: |
