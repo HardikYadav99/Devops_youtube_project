@@ -1,3 +1,5 @@
+# EC2 deploy is working correctly, ignore this comment
+
 name: build-and-lint
 on:
   push:
@@ -67,3 +69,5 @@ jobs:
             docker image prune -f
             docker compose ps
           EOF
+
+          
