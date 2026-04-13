@@ -7,7 +7,7 @@ pipeline {
         FRONTEND_IMAGE = "mern-frontend:jenkins"
         DOCKER_REGISTRY = "hardiky99" 
         PORT = "5001"
-        VITE_API_URL = "http://localhost:5000/api"
+        VITE_API_URL = "http://localhost:5001/api"
     }
 
     stages {

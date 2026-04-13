@@ -12,9 +12,7 @@ services:
       - mern-net
 
   backend:
-    build:
-      image: mern-backend:jenkins
-      dockerfile: Dockerfile
+    image: mern-backend:jenkins
     container_name: backend
     restart: unless-stopped
     env_file:
@@ -26,13 +24,8 @@ services:
     networks:
       - mern-net
 
-  # made VITE API URL dynamic for both local machine and AWS
   frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://localhost:5001
+    image: mern-frontend:jenkins
     container_name: frontend
     restart: unless-stopped
     ports:
