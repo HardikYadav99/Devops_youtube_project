@@ -13,7 +13,7 @@ services:
 
   backend:
     build:
-      context: ./server
+      image: mern-backend:jenkins
       dockerfile: Dockerfile
     container_name: backend
     restart: unless-stopped
