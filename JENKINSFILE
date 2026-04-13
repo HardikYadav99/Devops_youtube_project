@@ -5,11 +5,10 @@ pipeline {
         BACKEND_IMAGE = "mern-backend:jenkins"
         FRONTEND_IMAGE = "mern-frontend:jenkins"
 
-        // 🔥 Correct internal Docker networking
         BACKEND_HOST = "backend"
         BACKEND_PORT = "5000"
 
-        PORT = "5001" // only for host, not used in curl now
+        PORT = "5001"
         VITE_API_URL = "http://backend:5000/api"
     }
 
@@ -41,7 +40,6 @@ pipeline {
                 echo 'Starting MERN application...'
                 script {
 
-                    // No sudo in Jenkins container
                     sh 'chmod 666 /var/run/docker.sock || true'
 
                     sh 'pwd'
@@ -71,13 +69,13 @@ pipeline {
                 script {
 
                     echo "Testing backend..."
-                    sh "sh "curl -f http://localhost:5001/health""
+                    sh "curl -f http://localhost:5001/health"
 
                     echo "Testing frontend..."
-                    sh "curl -f http://frontend:5173"
+                    sh "curl -f http://localhost:5173"
 
                     echo "Testing DB..."
-                    sh "sh "curl -f http://localhost:5001/api/tasks"
+                    sh "curl -f http://localhost:5001/api/tasks"
 
                     echo "✅ All health checks passed"
                 }
@@ -90,13 +88,13 @@ pipeline {
                 script {
 
                     sh """
-                    curl -X POST http://${BACKEND_HOST}:${BACKEND_PORT}/api/tasks \
+                    curl -X POST http://localhost:5001/api/tasks \
                     -H 'Content-Type: application/json' \
                     -d '{"title":"Jenkins CI Test Task","completed":false}'
                     """
 
                     sh """
-                    if curl http://${BACKEND_HOST}:${BACKEND_PORT}/api/tasks | grep 'Jenkins CI Test Task';
+                    if curl http://localhost:5001/api/tasks | grep 'Jenkins CI Test Task';
                     then echo '✅ Integration test passed';
                     else echo '❌ Integration test failed'; exit 1;
                     fi
@@ -109,8 +107,8 @@ pipeline {
             steps {
                 echo '⚡ Performance test...'
                 script {
-                    sh "time curl -s http://${BACKEND_HOST}:${BACKEND_PORT}/api/tasks > /dev/null"
-                    sh "time curl -s http://frontend:5173 > /dev/null"
+                    sh "time curl -s http://localhost:5001/api/tasks > /dev/null"
+                    sh "time curl -s http://localhost:5173 > /dev/null"
                 }
             }
         }
