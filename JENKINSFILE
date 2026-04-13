@@ -113,6 +113,16 @@ pipeline {
                 sh 'docker image prune -f || true'
             }
         }
+        // ADD IT RIGHT HERE 👇
+        failure {
+            echo '❌ Pipeline failed! Fetching container status and logs...'
+            script {
+                // This shows us if the containers crashed (Exited 1)
+                sh 'docker ps -a' 
+                // This shows the actual error messages from inside the app
+                sh 'docker compose logs --tail=50' 
+            }
+        }
         success {
             echo '✅ Pipeline completed successfully!'
         }
