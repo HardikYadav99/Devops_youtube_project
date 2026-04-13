@@ -2,20 +2,19 @@ pipeline {
     agent any
 
     environment {
-        // Keeping all your original variables plus the new ones for clean code
         BACKEND_IMAGE = "mern-backend:jenkins"
         FRONTEND_IMAGE = "mern-frontend:jenkins"
-        DOCKER_REGISTRY = "hardiky99" 
+        DOCKER_REGISTRY = "hardiky99"
         PORT = "5001"
         VITE_API_URL = "http://localhost:5001/api"
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 echo 'Checking out source code from GitHub...'
                 script {
-                    // Using env variables to show build details in logs
                     echo "Building commit: ${env.GIT_COMMIT}"
                     echo "Branch: ${env.GIT_BRANCH}"
                 }
@@ -32,33 +31,55 @@ pipeline {
                     echo "Building frontend image: ${FRONTEND_IMAGE}"
                     sh "docker build -t ${FRONTEND_IMAGE} ./client --build-arg VITE_API_URL=${VITE_API_URL}"
 
-                    sh "docker images | grep jenkins"
+                    sh "docker images | grep jenkins || true"
                 }
             }
         }
 
-stage('Start Application Services') {
+        stage('Start Application Services') {
             steps {
                 echo 'Starting MERN application...'
-                script { 
-                    // Permission fix
+                script {
+
+                    // Fix Docker permission
                     sh 'sudo chmod 666 /var/run/docker.sock || true'
-                    
+
+                    // DEBUG: Directory check
+                    sh 'echo "Current directory:"'
+                    sh 'pwd'
+                    sh 'echo "Files in workspace:"'
+                    sh 'ls -la'
+
+                    // DEBUG: Docker images
+                    sh 'echo "Available Docker images:"'
+                    sh 'docker images'
+
                     withCredentials([string(credentialsId: 'MONGO_URI', variable: 'DB_URL')]) {
-                        // All commands stay inside this block
+
+                        // Create .env file
                         sh "echo 'MONGO_URI=${DB_URL}' > ./server/.env"
                         sh "echo 'PORT=${PORT}' >> ./server/.env"
 
-                        sh 'docker compose up -d'
-                        
+                        // Run docker compose
+                        sh 'docker compose -f docker-compose.yml up -d || true'
+
+                        // DEBUG: Compose status
+                        sh 'echo "Docker Compose Status:"'
+                        sh 'docker compose ps || true'
+
+                        // DEBUG: Logs
+                        sh 'echo "Docker Compose Logs:"'
+                        sh 'docker compose logs --tail=50 || true'
+
                         echo "Waiting for services to start..."
                         sleep(time: 30, unit: "SECONDS")
 
+                        // Final container check
                         sh 'docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"'
-                    } // Closes Credentials
-                } // Closes Script
-            } // Closes Steps
-        } // Closes Stage
+                    }
+                }
+            }
+        }
 
         stage('Health Check & Testing') {
             steps {
@@ -87,7 +108,12 @@ stage('Start Application Services') {
                     sh "curl -X POST http://localhost:${PORT}/api/tasks -H 'Content-Type: application/json' -d '{\"title\": \"Jenkins CI Test Task\", \"completed\": false}' -f || exit 1"
 
                     echo "Verifying task creation..."
-                    sh "if curl http://localhost:${PORT}/api/tasks | grep 'Jenkins CI Test Task'; then echo '✅ Integration test passed'; else echo '❌ Task creation test failed'; exit 1; fi"
+                    sh """
+                        if curl http://localhost:${PORT}/api/tasks | grep 'Jenkins CI Test Task';
+                        then echo '✅ Integration test passed';
+                        else echo '❌ Task creation test failed'; exit 1;
+                        fi
+                    """
                 }
             }
         }
@@ -98,6 +124,7 @@ stage('Start Application Services') {
                 script {
                     echo "Checking API response time..."
                     sh "time curl -s http://localhost:${PORT}/api/tasks > /dev/null"
+
                     echo "Checking frontend load time..."
                     sh "time curl -s http://localhost:5173 > /dev/null"
                 }
@@ -106,25 +133,24 @@ stage('Start Application Services') {
     }
 
     post {
+
         always {
             echo 'Cleaning up resources...'
             script {
-                // Stops containers and cleans up without throwing errors if nothing is found
                 sh 'docker compose down || true'
-                sh 'docker ps -aq --filter "label=jenkins-test" | xargs -r docker rm -f'
+                sh 'docker ps -aq --filter "label=jenkins-test" | xargs -r docker rm -f || true'
                 sh 'docker image prune -f || true'
             }
         }
-        // ADD IT RIGHT HERE 👇
+
         failure {
             echo '❌ Pipeline failed! Fetching container status and logs...'
             script {
-                // This shows us if the containers crashed (Exited 1)
-                sh 'docker ps -a' 
-                // This shows the actual error messages from inside the app
-                sh 'docker compose logs --tail=50' 
+                sh 'docker ps -a'
+                sh 'docker compose logs --tail=50 || true'
             }
         }
+
         success {
             echo '✅ Pipeline completed successfully!'
         }
