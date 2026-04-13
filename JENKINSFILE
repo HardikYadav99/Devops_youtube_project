@@ -40,6 +40,10 @@ pipeline {
         stage('Start Application Services') {
             steps {
                 echo 'Starting MERN application...'
+                script {
+                    // FIX: Granting permission to the Docker socket so the 'jenkins' user can use it
+                    // We use sudo because the socket is owned by root
+                    sh 'sudo chmod 666 /var/run/docker.sock || true'
                 // Best Practice: Securely injecting your MONGO_URI secret
                 withCredentials([string(credentialsId: 'MONGO_URI', variable: 'DB_URL')]) {
                     script {
