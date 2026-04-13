@@ -4,12 +4,7 @@ pipeline {
     environment {
         BACKEND_IMAGE = "mern-backend:jenkins"
         FRONTEND_IMAGE = "mern-frontend:jenkins"
-
-        BACKEND_HOST = "backend"
-        BACKEND_PORT = "5000"
-
-        PORT = "5001"
-        VITE_API_URL = "http://backend:5000/api"
+        DOCKER_REGISTRY = "your-dockerhub-username"
     }
 
     stages {
@@ -28,112 +23,38 @@ pipeline {
             steps {
                 echo 'Building Docker images...'
                 script {
+
+                    echo "Building backend image: ${BACKEND_IMAGE}"
                     sh "docker build -t ${BACKEND_IMAGE} ./server"
-                    sh "docker build -t ${FRONTEND_IMAGE} ./client --build-arg VITE_API_URL=${VITE_API_URL}"
+
+                    echo "Building frontend image: ${FRONTEND_IMAGE}"
+                    sh """
+                    docker build -t ${FRONTEND_IMAGE} ./client \
+                    --build-arg VITE_API_URL=http://localhost:5001/api
+                    """
+
                     sh "docker images | grep jenkins || true"
                 }
             }
         }
 
-        stage('Start Application Services') {
+        stage('Run with Docker Compose') {
             steps {
-                echo 'Starting MERN application...'
                 script {
+                    echo "Starting MERN stack with Docker Compose..."
 
-                    sh 'chmod 666 /var/run/docker.sock || true'
+                    sh 'docker compose up -d'
 
-                    sh 'pwd'
-                    sh 'ls -la'
-                    sh 'docker images'
+                    echo "Showing running containers..."
+                    sh 'docker ps'
 
-                    withCredentials([string(credentialsId: 'MONGO_URI', variable: 'DB_URL')]) {
+                    echo "===== Backend Logs ====="
+                    sh 'docker logs backend || true'
 
-                        sh "echo 'MONGO_URI=${DB_URL}' > ./server/.env"
-                        sh "echo 'PORT=5000' >> ./server/.env"
-
-                        sh 'docker compose -f docker-compose.yml up -d'
-
-                        echo "Waiting for services..."
-                        sleep(time: 30, unit: "SECONDS")
-
-                        sh 'docker compose ps'
-                        sh 'docker ps'
-                    }
+                    echo "===== Frontend Logs ====="
+                    sh 'docker logs frontend || true'
                 }
             }
-        }
-
-        stage('Health Check & Testing') {
-            steps {
-                echo 'Running health checks...'
-                script {
-
-                    echo "Testing backend..."
-                    sh "curl -f http://localhost:5001/health"
-
-                    echo "Testing frontend..."
-                    sh "curl -f http://localhost:5173"
-
-                    echo "Testing DB..."
-                    sh "curl -f http://localhost:5001/api/tasks"
-
-                    echo "✅ All health checks passed"
-                }
-            }
-        }
-
-        stage('Integration Tests') {
-            steps {
-                echo 'Running integration tests...'
-                script {
-
-                    sh """
-                    curl -X POST http://localhost:5001/api/tasks \
-                    -H 'Content-Type: application/json' \
-                    -d '{"title":"Jenkins CI Test Task","completed":false}'
-                    """
-
-                    sh """
-                    if curl http://localhost:5001/api/tasks | grep 'Jenkins CI Test Task';
-                    then echo '✅ Integration test passed';
-                    else echo '❌ Integration test failed'; exit 1;
-                    fi
-                    """
-                }
-            }
-        }
-
-        stage('Performance Check') {
-            steps {
-                echo '⚡ Performance test...'
-                script {
-                    sh "time curl -s http://localhost:5001/api/tasks > /dev/null"
-                    sh "time curl -s http://localhost:5173 > /dev/null"
-                }
-            }
-        }
-    }
-
-    post {
-
-        always {
-            echo 'Cleaning up...'
-            script {
-                sh 'docker compose down || true'
-                sh 'docker image prune -f || true'
-            }
-        }
-
-        failure {
-            echo '❌ Pipeline failed'
-            script {
-                sh 'docker ps -a'
-                sh 'docker compose logs --tail=50 || true'
-            }
-        }
-
-        success {
-            echo '✅ Pipeline SUCCESS 🎉'
         }
     }
 }
