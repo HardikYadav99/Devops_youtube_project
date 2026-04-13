@@ -71,13 +71,13 @@ pipeline {
                 script {
 
                     echo "Testing backend..."
-                    sh "curl -f http://${BACKEND_HOST}:${BACKEND_PORT}/health"
+                    sh "sh "curl -f http://localhost:5001/health""
 
                     echo "Testing frontend..."
                     sh "curl -f http://frontend:5173"
 
                     echo "Testing DB..."
-                    sh "curl -f http://${BACKEND_HOST}:${BACKEND_PORT}/api/tasks"
+                    sh "sh "curl -f http://localhost:5001/api/tasks"
 
                     echo "✅ All health checks passed"
                 }
