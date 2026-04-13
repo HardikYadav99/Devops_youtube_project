@@ -37,17 +37,15 @@ pipeline {
             }
         }
 
-        stage('Start Application Services') {
+stage('Start Application Services') {
             steps {
                 echo 'Starting MERN application...'
-                script {
-                    // FIX: Granting permission to the Docker socket so the 'jenkins' user can use it
-                    // We use sudo because the socket is owned by root
+                script { 
+                    // Permission fix
                     sh 'sudo chmod 666 /var/run/docker.sock || true'
-                // Best Practice: Securely injecting your MONGO_URI secret
-                withCredentials([string(credentialsId: 'MONGO_URI', variable: 'DB_URL')]) {
-                    script {
-                        // Creating the .env file to fix the "file not found" error from your logs
+                    
+                    withCredentials([string(credentialsId: 'MONGO_URI', variable: 'DB_URL')]) {
+                        // All commands stay inside this block
                         sh "echo 'MONGO_URI=${DB_URL}' > ./server/.env"
                         sh "echo 'PORT=${PORT}' >> ./server/.env"
 
@@ -57,10 +55,10 @@ pipeline {
                         sleep(time: 30, unit: "SECONDS")
 
                         sh 'docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"'
-                    }
-                }
-            }
-        }
+                    } // Closes Credentials
+                } // Closes Script
+            } // Closes Steps
+        } // Closes Stage
 
         stage('Health Check & Testing') {
             steps {
