@@ -40,11 +40,11 @@ services:
       - mern-net
     
   nginx:
-    image: nginx:lpine
+    image: nginx:alpine
     container_name: ngnix
     restart: unless-stopped
     volumes:
-      - ./nginx/nginx.conf:/etc/ngnix/nginx.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
     depends_on:
