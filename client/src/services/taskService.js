@@ -31,7 +31,7 @@ class TaskService {
   }
 
   async deleteTask(taskId) {
-    const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: "DELETE",
     });
 
