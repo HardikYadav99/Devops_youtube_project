@@ -39,7 +39,7 @@ services:
     networks:
       - mern-net
     
-nginx:
+  nginx:
     image: mern-nginx:jenkins    # Use the image Jenkins built!
     container_name: nginx
     restart: unless-stopped
