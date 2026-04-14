@@ -12,7 +12,7 @@ class TaskService {
   }
 
   async createTask(taskData) {
-    const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+    const response = await fetch(`${API_BASE_URL}/tasks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
