@@ -20,8 +20,6 @@ services:
     restart: unless-stopped
     env_file:
       - ./server/.env
-    ports:
-      - "5001:5000"
     depends_on:
       - mongo
     networks:
@@ -32,20 +30,32 @@ services:
     #build:
      # context: ./client
      # dockerfile: Dockerfile 
-     # args:
-     #  VITE_API_URL: "http://localhost:5001"
+       #args:
+       #  VITE_API_URL: "http://localhost:5001"
     container_name: frontend
     restart: unless-stopped
-    ports:
-      - "5173:5173"
     depends_on:
       - backend
     networks:
       - mern-net
-
+    
+  nginx:
+    image: nginx:lpine
+    container_name: ngnix
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/ngnix/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend 
+      - backend
+    networks:
+      - mern-net
+ 
 volumes:
   mongo-data:
 
 networks:
   mern-net:
-    driver: bridge
+    driver: bridge 
