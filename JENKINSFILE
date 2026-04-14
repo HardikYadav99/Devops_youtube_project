@@ -4,7 +4,9 @@ pipeline {
     environment {
         BACKEND_IMAGE = "mern-backend:jenkins"
         FRONTEND_IMAGE = "mern-frontend:jenkins"
+        NGINX_IMAGE = "mern-nginx:jenkins"
         DOCKER_REGISTRY = "your-dockerhub-username"
+
     }
 
     stages {
@@ -23,6 +25,9 @@ pipeline {
             steps {
                 echo 'Building Docker images...'
                 script {
+                    echo "Building Jenkins image: ${NGINX_IMAGE}"
+                    sh "docker build -t ${NGINX_IMAGE} ./nginx"
+
 
                     echo "Building backend image: ${BACKEND_IMAGE}"
                     sh "docker build -t ${BACKEND_IMAGE} ./server"
@@ -41,6 +46,11 @@ pipeline {
         stage('Run with Docker Compose') {
             steps {
                 script {
+
+                    echo "cleaning up old MERN containers "
+                    sh 'docker compose down || true'
+ 
+
                     echo "Starting MERN stack with Docker Compose..."
 
                     sh 'docker-compose up -d'

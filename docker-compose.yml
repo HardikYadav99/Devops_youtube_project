@@ -39,12 +39,11 @@ services:
     networks:
       - mern-net
     
-  nginx:
-    image: nginx:alpine
+nginx:
+    image: mern-nginx:jenkins    # Use the image Jenkins built!
     container_name: nginx
     restart: unless-stopped
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    # NOTICE: The volumes section is completely gone!
     ports:
       - "80:80"
     depends_on:
