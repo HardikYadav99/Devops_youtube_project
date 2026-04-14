@@ -43,7 +43,7 @@ pipeline {
                 script {
                     echo "Starting MERN stack with Docker Compose..."
 
-                    sh 'docker compose up -d'
+                    sh 'docker-compose up -d'
 
                     echo "Showing running containers..."
                     sh 'docker ps'
