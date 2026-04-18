@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mern-ingress
+  namespace: mern-project
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: merndemo.local   # Added space after the dash
+      http: 
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 5000 # Added 'number' keyword (required in v1)
+          - path: /
+            pathType: Prefix   # Fixed typo: 'pathype' -> 'pathType'
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 5173 # Fixed typo: '5713' -> '5173' (matching your Dockerfile)
